@@ -1,682 +1,560 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teacher Attendance Management App</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f5f5f5;
-    }
-    .app-container {
-      max-width: 420px;
-      margin: 0 auto;
-      background-color: white;
-      min-height: 100vh;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      padding-bottom: 20px;
-    }
-    .app-header {
-      background-color: #3f51b5;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      border-bottom: 1px solid #ddd;
-    }
-    .screen-container {
-      padding: 15px;
-    }
-    .dashboard-item {
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-      display: flex;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .dashboard-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-    }
-    .item-icon {
-      width: 40px;
-      height: 40px;
-      background-color: #e3f2fd;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 15px;
-      color: #1976d2;
-    }
-    .item-content {
-      flex: 1;
-    }
-    .item-title {
-      font-weight: 600;
-      margin-bottom: 5px;
-    }
-    .item-desc {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .screen {
-      display: none;
-    }
-    .active-screen {
-      display: block;
-    }
-    .back-button {
-      background-color: transparent;
-      border: none;
-      color: white;
-      font-size: 1.2rem;
-      position: absolute;
-      left: 15px;
-      top: 15px;
-    }
-    .btn-primary {
-      background-color: #3f51b5;
-      border-color: #3f51b5;
-    }
-    .btn-primary:hover {
-      background-color: #303f9f;
-      border-color: #303f9f;
-    }
-    .attendance-card {
-      margin-bottom: 10px;
-      border-left: 4px solid #3f51b5;
-    }
-    .present {
-      border-color: #4caf50;
-    }
-    .absent {
-      border-color: #f44336;
-    }
-    .late {
-      border-color: #ff9800;
-    }
-    .status-badge {
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 12px;
-    }
-    .present-badge {
-      background-color: #e8f5e9;
-      color: #2e7d32;
-    }
-    .absent-badge {
-      background-color: #ffebee;
-      color: #c62828;
-    }
-    .late-badge {
-      background-color: #fff3e0;
-      color: #ef6c00;
-    }
-    .login-container {
-      padding: 20px;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    .notification-item {
-      border-left: 4px solid #3f51b5;
-      margin-bottom: 15px;
-    }
-    .notification-item.unread {
-      background-color: #f0f8ff;
-    }
-    .mobile-frame {
-      border: 12px solid #222;
-      border-radius: 30px;
-      overflow: hidden;
-      margin: 20px auto;
-      max-width: 320px;
-      position: relative;
-    }
-    .mobile-frame:before {
-      content: "";
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 150px;
-      height: 20px;
-      background-color: #222;
-      border-bottom-left-radius: 10px;
-      border-bottom-right-radius: 10px;
-      z-index: 1000;
-    }
-    .mobile-screen {
-      height: 600px;
-      overflow-y: auto;
-      position: relative;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Attendance App Preview</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .phone-container {
+            width: 360px;
+            height: 740px;
+            background-color: white;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: 8px solid #333;
+            position: relative;
+        }
+        .status-bar {
+            height: 30px;
+            background-color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            color: white;
+            font-size: 12px;
+        }
+        .app-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .app-header h1 {
+            font-size: 22px;
+            font-weight: 500;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            padding: 15px;
+        }
+        .dashboard-item {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            text-align: center;
+        }
+        .dashboard-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .dashboard-item i {
+            font-size: 36px;
+            margin-bottom: 10px;
+            color: #2196F3;
+        }
+        .dashboard-item h3 {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        .navbar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60px;
+            background-color: #fff;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #757575;
+            font-size: 10px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .nav-item.active {
+            color: #2196F3;
+        }
+        .nav-item i {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+        .screen {
+            display: none;
+            height: calc(100% - 105px);  /* Subtracting header and navbar heights */
+            overflow-y: auto;
+        }
+        .screen.active {
+            display: block;
+        }
+        .attendance-list, .class-list, .notification-list {
+            padding: 15px;
+        }
+        .list-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .attendance-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .attendance-item .student-info {
+            display: flex;
+            align-items: center;
+        }
+        .attendance-item .student-info .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: bold;
+            color: #757575;
+        }
+        .attendance-actions {
+            display: flex;
+        }
+        .btn {
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-left: 5px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-present {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-absent {
+            background-color: #F44336;
+            color: white;
+        }
+        .btn-late {
+            background-color: #FF9800;
+            color: white;
+        }
+        .class-item, .notification-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .class-info h3, .notification-info h3 {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+        .class-info p, .notification-info p {
+            font-size: 14px;
+            color: #757575;
+        }
+        .profile-screen {
+            padding: 20px;
+            text-align: center;
+        }
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto 20px;
+            font-size: 36px;
+            color: #757575;
+        }
+        .profile-info {
+            margin-bottom: 30px;
+        }
+        .profile-info h2 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .profile-info p {
+            color: #757575;
+        }
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-item h3 {
+            font-size: 24px;
+            color: #2196F3;
+        }
+        .stat-item p {
+            font-size: 14px;
+            color: #757575;
+        }
+        .menu-item {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .menu-item i {
+            color: #757575;
+        }
+        /* Class selector for icons */
+        .material-icons {
+            font-family: 'Material Icons';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-  <div class="container mt-4 mb-5">
-    <h1 class="text-center">Teacher Attendance Management App Preview</h1>
-    <p class="text-center mb-4">This is a preview of how the Flutter mobile app would look with MongoDB backend</p>
-    
-    <div class="mobile-frame">
-      <div class="mobile-screen">
-        <div class="app-container">
-          
-          <!-- Login Screen -->
-          <div id="loginScreen" class="screen">
-            <div class="app-header">
-              <h5 class="mb-0">Attendance Management</h5>
-            </div>
-            <div class="screen-container">
-              <div class="login-container">
-                <h4 class="text-center mb-4">Teacher Login</h4>
-                <form id="loginForm">
-                  <div class="mb-3">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="username" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="password" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="password" required>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100 mb-3">Login</button>
-                  <p class="text-center">
-                    Don't have an account? 
-                    <a href="#" onclick="showScreen('registerScreen')">Register</a>
-                  </p>
-                </form>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Register Screen -->
-          <div id="registerScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('loginScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">Register New Account</h5>
-            </div>
-            <div class="screen-container">
-              <div class="login-container">
-                <form id="registerForm">
-                  <div class="mb-3">
-                    <label for="regName" class="form-label">Full Name</label>
-                    <input type="text" class="form-control" id="regName" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="regEmail" class="form-label">Email</label>
-                    <input type="email" class="form-control" id="regEmail" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="regUsername" class="form-label">Username</label>
-                    <input type="text" class="form-control" id="regUsername" required>
-                  </div>
-                  <div class="mb-3">
-                    <label for="regPassword" class="form-label">Password</label>
-                    <input type="password" class="form-control" id="regPassword" required>
-                  </div>
-                  <button type="submit" class="btn btn-primary w-100 mb-3">Register</button>
-                  <p class="text-center">
-                    Already have an account? 
-                    <a href="#" onclick="showScreen('loginScreen')">Login</a>
-                  </p>
-                </form>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Dashboard Screen -->
-          <div id="dashboardScreen" class="screen active-screen">
-            <div class="app-header">
-              <h5 class="mb-0">Teacher Dashboard</h5>
-            </div>
-            <div class="screen-container">
-              <div class="mb-4">
-                <h6>Welcome, Teacher!</h6>
-                <p class="text-muted">Choose an action below</p>
-              </div>
-              
-              <div class="dashboard-item" onclick="showScreen('markAttendanceScreen')">
-                <div class="item-icon">
-                  <i class="fas fa-clipboard-check"></i>✓
-                </div>
-                <div class="item-content">
-                  <div class="item-title">Mark Attendance</div>
-                  <div class="item-desc">Take attendance for your classes</div>
-                </div>
-              </div>
-              
-              <div class="dashboard-item" onclick="showScreen('viewAttendanceScreen')">
-                <div class="item-icon">
-                  <i class="fas fa-list"></i>📋
-                </div>
-                <div class="item-content">
-                  <div class="item-title">View Attendance</div>
-                  <div class="item-desc">Check attendance records</div>
-                </div>
-              </div>
-              
-              <div class="dashboard-item" onclick="showScreen('myClassesScreen')">
-                <div class="item-icon">
-                  <i class="fas fa-users"></i>👨‍👩‍👧‍👦
-                </div>
-                <div class="item-content">
-                  <div class="item-title">My Classes</div>
-                  <div class="item-desc">Manage your class information</div>
-                </div>
-              </div>
-              
-              <div class="dashboard-item" onclick="showScreen('notificationsScreen')">
-                <div class="item-icon">
-                  <i class="fas fa-bell"></i>🔔
-                </div>
-                <div class="item-content">
-                  <div class="item-title">Notifications</div>
-                  <div class="item-desc">Check your latest notifications</div>
-                </div>
-              </div>
-              
-              <div class="dashboard-item" onclick="showScreen('profileScreen')">
-                <div class="item-icon">
-                  <i class="fas fa-user"></i>👤
-                </div>
-                <div class="item-content">
-                  <div class="item-title">Profile</div>
-                  <div class="item-desc">View and edit your profile</div>
-                </div>
-              </div>
-              
-              <button class="btn btn-outline-danger w-100 mt-4" onclick="logout()">Logout</button>
-            </div>
-          </div>
-          
-          <!-- Mark Attendance Screen -->
-          <div id="markAttendanceScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('dashboardScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">Mark Attendance</h5>
-            </div>
-            <div class="screen-container">
-              <div class="mb-3">
-                <label for="classSelect" class="form-label">Select Class</label>
-                <select class="form-select" id="classSelect">
-                  <option value="1">Class 10 - Mathematics</option>
-                  <option value="2">Class 9 - Science</option>
-                  <option value="3">Class 8 - English</option>
-                </select>
-              </div>
-              
-              <div class="mb-3">
-                <label for="attendanceDate" class="form-label">Date</label>
-                <input type="date" class="form-control" id="attendanceDate" value="2025-04-26">
-              </div>
-              
-              <div class="card mb-3">
-                <div class="card-header bg-light">
-                  Student List
-                </div>
-                <div class="card-body">
-                  <div class="mb-3">
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student1" id="student1Present" value="present" checked>
-                      <label class="form-check-label" for="student1Present">
-                        Present
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student1" id="student1Absent" value="absent">
-                      <label class="form-check-label" for="student1Absent">
-                        Absent
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student1" id="student1Late" value="late">
-                      <label class="form-check-label" for="student1Late">
-                        Late
-                      </label>
-                    </div>
-                    <small class="text-muted">John Doe (Roll: 10A01)</small>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student2" id="student2Present" value="present" checked>
-                      <label class="form-check-label" for="student2Present">
-                        Present
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student2" id="student2Absent" value="absent">
-                      <label class="form-check-label" for="student2Absent">
-                        Absent
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student2" id="student2Late" value="late">
-                      <label class="form-check-label" for="student2Late">
-                        Late
-                      </label>
-                    </div>
-                    <small class="text-muted">Jane Smith (Roll: 10A02)</small>
-                  </div>
-                  
-                  <div class="mb-3">
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student3" id="student3Present" value="present" checked>
-                      <label class="form-check-label" for="student3Present">
-                        Present
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student3" id="student3Absent" value="absent">
-                      <label class="form-check-label" for="student3Absent">
-                        Absent
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input class="form-check-input" type="radio" name="student3" id="student3Late" value="late">
-                      <label class="form-check-label" for="student3Late">
-                        Late
-                      </label>
-                    </div>
-                    <small class="text-muted">Bob Johnson (Roll: 10A03)</small>
-                  </div>
-                </div>
-              </div>
-              
-              <button class="btn btn-primary w-100" onclick="saveAttendance()">Save Attendance</button>
-            </div>
-          </div>
-          
-          <!-- View Attendance Screen -->
-          <div id="viewAttendanceScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('dashboardScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">View Attendance</h5>
-            </div>
-            <div class="screen-container">
-              <div class="mb-3">
-                <label for="viewClassSelect" class="form-label">Select Class</label>
-                <select class="form-select" id="viewClassSelect">
-                  <option value="1">Class 10 - Mathematics</option>
-                  <option value="2">Class 9 - Science</option>
-                  <option value="3">Class 8 - English</option>
-                </select>
-              </div>
-              
-              <div class="mb-3">
-                <label for="viewAttendanceDate" class="form-label">Date</label>
-                <input type="date" class="form-control" id="viewAttendanceDate" value="2025-04-26">
-              </div>
-              
-              <div class="card mb-3">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                  <span>Attendance Records</span>
-                  <small class="text-muted">2025-04-26</small>
-                </div>
-                <div class="card-body">
-                  <div class="card attendance-card present mb-2">
-                    <div class="card-body py-2">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <div class="fw-semibold">John Doe</div>
-                          <small class="text-muted">Roll: 10A01</small>
-                        </div>
-                        <span class="status-badge present-badge">Present</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="card attendance-card absent mb-2">
-                    <div class="card-body py-2">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <div class="fw-semibold">Jane Smith</div>
-                          <small class="text-muted">Roll: 10A02</small>
-                        </div>
-                        <span class="status-badge absent-badge">Absent</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div class="card attendance-card late mb-2">
-                    <div class="card-body py-2">
-                      <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                          <div class="fw-semibold">Bob Johnson</div>
-                          <small class="text-muted">Roll: 10A03</small>
-                        </div>
-                        <span class="status-badge late-badge">Late</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card">
-                <div class="card-header bg-light">
-                  Summary
-                </div>
-                <div class="card-body">
-                  <div class="row">
-                    <div class="col-4 text-center">
-                      <div class="fw-bold text-success">1</div>
-                      <small>Present</small>
-                    </div>
-                    <div class="col-4 text-center">
-                      <div class="fw-bold text-danger">1</div>
-                      <small>Absent</small>
-                    </div>
-                    <div class="col-4 text-center">
-                      <div class="fw-bold text-warning">1</div>
-                      <small>Late</small>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- My Classes Screen -->
-          <div id="myClassesScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('dashboardScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">My Classes</h5>
-            </div>
-            <div class="screen-container">
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5 class="card-title">Class 10</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Section A</h6>
-                  <p class="card-text">Subject: Mathematics</p>
-                  <div class="d-flex justify-content-between">
-                    <small class="text-muted">3 Students</small>
-                    <button class="btn btn-sm btn-outline-primary">View Details</button>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5 class="card-title">Class 9</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Section B</h6>
-                  <p class="card-text">Subject: Science</p>
-                  <div class="d-flex justify-content-between">
-                    <small class="text-muted">2 Students</small>
-                    <button class="btn btn-sm btn-outline-primary">View Details</button>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card mb-3">
-                <div class="card-body">
-                  <h5 class="card-title">Class 8</h5>
-                  <h6 class="card-subtitle mb-2 text-muted">Section C</h6>
-                  <p class="card-text">Subject: English</p>
-                  <div class="d-flex justify-content-between">
-                    <small class="text-muted">1 Student</small>
-                    <button class="btn btn-sm btn-outline-primary">View Details</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Notifications Screen -->
-          <div id="notificationsScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('dashboardScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">Notifications</h5>
-            </div>
-            <div class="screen-container">
-              <div class="card notification-item unread mb-2">
-                <div class="card-body py-2">
-                  <h6 class="card-title">Welcome to the Attendance App</h6>
-                  <p class="card-text">Thank you for joining our attendance management system.</p>
-                  <small class="text-muted">April 26, 2025</small>
-                </div>
-              </div>
-              
-              <div class="card notification-item mb-2">
-                <div class="card-body py-2">
-                  <h6 class="card-title">New Student Added</h6>
-                  <p class="card-text">A new student has been added to Class 10.</p>
-                  <small class="text-muted">April 25, 2025</small>
-                </div>
-              </div>
-              
-              <div class="card notification-item mb-2">
-                <div class="card-body py-2">
-                  <h6 class="card-title">Attendance Reminder</h6>
-                  <p class="card-text">Don't forget to mark today's attendance for Class 9.</p>
-                  <small class="text-muted">April 24, 2025</small>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Profile Screen -->
-          <div id="profileScreen" class="screen">
-            <div class="app-header">
-              <button class="back-button" onclick="showScreen('dashboardScreen')">
-                ←
-              </button>
-              <h5 class="mb-0">Profile</h5>
-            </div>
-            <div class="screen-container">
-              <div class="text-center mb-4">
-                <div style="width: 100px; height: 100px; background-color: #e0e0e0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 40px; color: #757575;">
-                  T
-                </div>
-                <h5 class="mt-3 mb-0">Teacher Name</h5>
-                <p class="text-muted">Mathematics</p>
-              </div>
-              
-              <div class="card mb-3">
-                <div class="card-body">
-                  <div class="mb-3">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" class="form-control" value="Teacher Name">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" value="teacher@example.com">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Subject</label>
-                    <input type="text" class="form-control" value="Mathematics">
-                  </div>
-                  <button class="btn btn-primary w-100">Update Profile</button>
-                </div>
-              </div>
-              
-              <div class="card">
-                <div class="card-body">
-                  <h6 class="card-title">Change Password</h6>
-                  <div class="mb-3">
-                    <label class="form-label">Current Password</label>
-                    <input type="password" class="form-control">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">New Password</label>
-                    <input type="password" class="form-control">
-                  </div>
-                  <div class="mb-3">
-                    <label class="form-label">Confirm New Password</label>
-                    <input type="password" class="form-control">
-                  </div>
-                  <button class="btn btn-primary w-100">Change Password</button>
-                </div>
-              </div>
-            </div>
-          </div>
-          
+    <div class="phone-container">
+        <div class="status-bar">
+            <span>9:41 AM</span>
+            <span>
+                <span style="margin-right: 5px;">📶</span>
+                <span>🔋 82%</span>
+            </span>
         </div>
-      </div>
+        <div class="app-header">
+            <h1>Teacher Dashboard</h1>
+        </div>
+        
+        <!-- Dashboard Screen -->
+        <div class="screen active" id="dashboard-screen">
+            <div class="dashboard-grid">
+                <div class="dashboard-item" onclick="showScreen('mark-attendance-screen')">
+                    <i class="material-icons">how_to_reg</i>
+                    <h3>Mark Attendance</h3>
+                </div>
+                <div class="dashboard-item" onclick="showScreen('view-attendance-screen')">
+                    <i class="material-icons">list_alt</i>
+                    <h3>View Attendance</h3>
+                </div>
+                <div class="dashboard-item" onclick="showScreen('classes-screen')">
+                    <i class="material-icons">class</i>
+                    <h3>My Classes</h3>
+                </div>
+                <div class="dashboard-item" onclick="showScreen('notifications-screen')">
+                    <i class="material-icons">notifications</i>
+                    <h3>Notifications</h3>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mark Attendance Screen -->
+        <div class="screen" id="mark-attendance-screen">
+            <div class="app-header">
+                <h1>Mark Attendance - Class A</h1>
+            </div>
+            <div class="attendance-list">
+                <div class="list-item attendance-item">
+                    <div class="student-info">
+                        <div class="avatar">JS</div>
+                        <div>
+                            <h3>John Smith</h3>
+                            <p>Roll: A001</p>
+                        </div>
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="btn btn-present">Present</button>
+                        <button class="btn btn-absent">Absent</button>
+                        <button class="btn btn-late">Late</button>
+                    </div>
+                </div>
+                <div class="list-item attendance-item">
+                    <div class="student-info">
+                        <div class="avatar">EJ</div>
+                        <div>
+                            <h3>Emma Johnson</h3>
+                            <p>Roll: A002</p>
+                        </div>
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="btn btn-present">Present</button>
+                        <button class="btn btn-absent">Absent</button>
+                        <button class="btn btn-late">Late</button>
+                    </div>
+                </div>
+                <div class="list-item attendance-item">
+                    <div class="student-info">
+                        <div class="avatar">MB</div>
+                        <div>
+                            <h3>Michael Brown</h3>
+                            <p>Roll: A003</p>
+                        </div>
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="btn btn-present">Present</button>
+                        <button class="btn btn-absent">Absent</button>
+                        <button class="btn btn-late">Late</button>
+                    </div>
+                </div>
+                <div class="list-item attendance-item">
+                    <div class="student-info">
+                        <div class="avatar">SD</div>
+                        <div>
+                            <h3>Sarah Davis</h3>
+                            <p>Roll: A004</p>
+                        </div>
+                    </div>
+                    <div class="attendance-actions">
+                        <button class="btn btn-present">Present</button>
+                        <button class="btn btn-absent">Absent</button>
+                        <button class="btn btn-late">Late</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- View Attendance Screen -->
+        <div class="screen" id="view-attendance-screen">
+            <div class="app-header">
+                <h1>Attendance Records - Class A</h1>
+            </div>
+            <div class="attendance-list">
+                <div class="list-item">
+                    <h3>April 26, 2025</h3>
+                    <p>Present: 18 | Absent: 2 | Late: 1</p>
+                </div>
+                <div class="list-item">
+                    <h3>April 25, 2025</h3>
+                    <p>Present: 17 | Absent: 3 | Late: 1</p>
+                </div>
+                <div class="list-item">
+                    <h3>April 24, 2025</h3>
+                    <p>Present: 19 | Absent: 1 | Late: 1</p>
+                </div>
+                <div class="list-item">
+                    <h3>April 23, 2025</h3>
+                    <p>Present: 20 | Absent: 0 | Late: 1</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Classes Screen -->
+        <div class="screen" id="classes-screen">
+            <div class="app-header">
+                <h1>My Classes</h1>
+            </div>
+            <div class="class-list">
+                <div class="list-item class-item">
+                    <div class="class-info">
+                        <h3>Class A - Mathematics</h3>
+                        <p>Section: Morning | Students: 21</p>
+                    </div>
+                    <i class="material-icons">arrow_forward_ios</i>
+                </div>
+                <div class="list-item class-item">
+                    <div class="class-info">
+                        <h3>Class B - Physics</h3>
+                        <p>Section: Afternoon | Students: 18</p>
+                    </div>
+                    <i class="material-icons">arrow_forward_ios</i>
+                </div>
+                <div class="list-item class-item">
+                    <div class="class-info">
+                        <h3>Class C - Chemistry</h3>
+                        <p>Section: Morning | Students: 19</p>
+                    </div>
+                    <i class="material-icons">arrow_forward_ios</i>
+                </div>
+                <div class="list-item class-item">
+                    <div class="class-info">
+                        <h3>Class D - Biology</h3>
+                        <p>Section: Afternoon | Students: 20</p>
+                    </div>
+                    <i class="material-icons">arrow_forward_ios</i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Notifications Screen -->
+        <div class="screen" id="notifications-screen">
+            <div class="app-header">
+                <h1>Notifications</h1>
+            </div>
+            <div class="notification-list">
+                <div class="list-item notification-item">
+                    <div class="notification-info">
+                        <h3>Attendance Reminder</h3>
+                        <p>Don't forget to mark attendance for Class B today</p>
+                        <small>2 hours ago</small>
+                    </div>
+                    <div style="color: #2196F3;">New</div>
+                </div>
+                <div class="list-item notification-item">
+                    <div class="notification-info">
+                        <h3>System Update</h3>
+                        <p>Attendance app has been updated to version 2.1</p>
+                        <small>Yesterday</small>
+                    </div>
+                    <div style="color: #757575;">Read</div>
+                </div>
+                <div class="list-item notification-item">
+                    <div class="notification-info">
+                        <h3>New Student</h3>
+                        <p>James Wilson has been added to Class A</p>
+                        <small>April 24, 2025</small>
+                    </div>
+                    <div style="color: #757575;">Read</div>
+                </div>
+                <div class="list-item notification-item">
+                    <div class="notification-info">
+                        <h3>Principal's Note</h3>
+                        <p>Please submit monthly attendance reports by Friday</p>
+                        <small>April 23, 2025</small>
+                    </div>
+                    <div style="color: #757575;">Read</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Screen -->
+        <div class="screen" id="profile-screen">
+            <div class="profile-screen">
+                <div class="profile-pic">
+                    JD
+                </div>
+                <div class="profile-info">
+                    <h2>Jane Doe</h2>
+                    <p>Mathematics Teacher</p>
+                    <p>jane.doe@school.edu</p>
+                </div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <h3>4</h3>
+                        <p>Classes</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>78</h3>
+                        <p>Students</p>
+                    </div>
+                    <div class="stat-item">
+                        <h3>96%</h3>
+                        <p>Attendance</p>
+                    </div>
+                </div>
+                <div class="menu-item">
+                    <span>Edit Profile</span>
+                    <i class="material-icons">chevron_right</i>
+                </div>
+                <div class="menu-item">
+                    <span>Settings</span>
+                    <i class="material-icons">chevron_right</i>
+                </div>
+                <div class="menu-item">
+                    <span>Help & Support</span>
+                    <i class="material-icons">chevron_right</i>
+                </div>
+                <div class="menu-item" style="color: #F44336;">
+                    <span>Logout</span>
+                    <i class="material-icons" style="color: #F44336;">logout</i>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Navigation Bar -->
+        <div class="navbar">
+            <div class="nav-item active" onclick="activateNav('dashboard')">
+                <i class="material-icons">dashboard</i>
+                <span>Dashboard</span>
+            </div>
+            <div class="nav-item" onclick="activateNav('classes')">
+                <i class="material-icons">class</i>
+                <span>Classes</span>
+            </div>
+            <div class="nav-item" onclick="activateNav('notifications')">
+                <i class="material-icons">notifications</i>
+                <span>Notifications</span>
+            </div>
+            <div class="nav-item" onclick="activateNav('profile')">
+                <i class="material-icons">person</i>
+                <span>Profile</span>
+            </div>
+        </div>
     </div>
-    
-    <div class="mt-4 text-center">
-      <h3>Features Implemented:</h3>
-      <ul class="list-group text-start mx-auto" style="max-width: 600px;">
-        <li class="list-group-item">✅ MongoDB integration for persistent data storage</li>
-        <li class="list-group-item">✅ Complete teacher authentication (login/registration)</li>
-        <li class="list-group-item">✅ Dashboard with navigation to all features</li>
-        <li class="list-group-item">✅ Mark attendance functionality with date selection</li>
-        <li class="list-group-item">✅ View attendance records with filtering options</li>
-        <li class="list-group-item">✅ Class management system with student listings</li>
-        <li class="list-group-item">✅ Notification system for app updates and reminders</li>
-        <li class="list-group-item">✅ Teacher profile management</li>
-        <li class="list-group-item">✅ RESTful API endpoints for all app features</li>
-        <li class="list-group-item">✅ Mobile-responsive design for all screens</li>
-      </ul>
-    </div>
-  </div>
 
-  <script>
-    function showScreen(screenId) {
-      // Hide all screens
-      document.querySelectorAll('.screen').forEach(screen => {
-        screen.classList.remove('active-screen');
-      });
-      
-      // Show the selected screen
-      document.getElementById(screenId).classList.add('active-screen');
-    }
-    
-    function logout() {
-      showScreen('loginScreen');
-    }
-    
-    function saveAttendance() {
-      alert('Attendance saved successfully!');
-      showScreen('dashboardScreen');
-    }
-    
-    // Form submissions
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      showScreen('dashboardScreen');
-    });
-    
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      showScreen('dashboardScreen');
-    });
-  </script>
+    <script>
+        function showScreen(screenId) {
+            const screens = document.querySelectorAll('.screen');
+            screens.forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+        
+        function activateNav(navId) {
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            event.currentTarget.classList.add('active');
+            
+            // Show corresponding screen
+            if (navId === 'dashboard') {
+                showScreen('dashboard-screen');
+            } else if (navId === 'classes') {
+                showScreen('classes-screen');
+            } else if (navId === 'notifications') {
+                showScreen('notifications-screen');
+            } else if (navId === 'profile') {
+                showScreen('profile-screen');
+            }
+        }
+    </script>
 </body>
 </html>
