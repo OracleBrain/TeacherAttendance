@@ -34,7 +34,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && npm install react react-dom wouter @tanstack/react-query @types/react @types/react-dom lucide-react && npx vite --port 5000 --host 0.0.0.0"
+args = "cd client && node simple.js"
 waitForPort = 5000
 
 [deployment]

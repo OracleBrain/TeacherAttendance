@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Attendance App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #3b82f6;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #3b82f6;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    .btn:hover {
+      background-color: #2563eb;
+    }
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .dashboard-card {
+      background-color: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .dashboard-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    }
+    form {
+      margin-top: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .auth-container {
+      display: flex;
+      min-height: 80vh;
+    }
+    .auth-form {
+      flex: 1;
+      padding: 20px;
+    }
+    .auth-hero {
+      flex: 1;
+      background-color: #3b82f6;
+      color: white;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    @media (max-width: 768px) {
+      .auth-container {
+        flex-direction: column;
+      }
+      .auth-hero {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Teacher Attendance App</h1>
+    
+    <!-- Login/Register Form -->
+    <div class="auth-container">
+      <div class="auth-form">
+        <h2>Sign In</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required>
+          </div>
+          <button type="submit" class="btn">Sign In</button>
+        </form>
+        <p>Don't have an account? <a href="#" id="toggleForm">Register</a></p>
+      </div>
+      <div class="auth-hero">
+        <h2>Teacher Attendance Portal</h2>
+        <p>The easy way to manage your class attendance. Mark attendance, view records, manage classes, and access your profile - all in one place.</p>
+        <ul>
+          <li>✓ Quick attendance marking</li>
+          <li>✓ View historical attendance data</li>
+          <li>✓ Manage your class assignments</li>
+          <li>✓ Stay updated with notifications</li>
+          <li>✓ Mobile-friendly interface</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display: none;">
+      <h2>Dashboard</h2>
+      <div class="dashboard-grid">
+        <div class="dashboard-card">
+          <h3>Mark Attendance</h3>
+          <p>Record student attendance for your classes</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>View Attendance</h3>
+          <p>Check historical attendance records</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>My Classes</h3>
+          <p>Manage your assigned classes</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Notifications</h3>
+          <p>View important updates</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Profile</h3>
+          <p>Manage your account settings</p>
+        </div>
+      </div>
+      <button id="logoutBtn" class="btn" style="margin-top: 20px;">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    // Simple authentication logic
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // In a real app, this would send a request to the server
+      // For demo purposes, we'll just show the dashboard
+      document.querySelector('.auth-container').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      document.querySelector('.auth-container').style.display = 'flex';
+      document.getElementById('dashboard').style.display = 'none';
+    });
+
+    document.getElementById('toggleForm').addEventListener('click', function(e) {
+      e.preventDefault();
+      const loginForm = document.getElementById('loginForm');
+      const heading = document.querySelector('.auth-form h2');
+      const toggleLink = document.getElementById('toggleForm');
+      
+      if (heading.textContent === 'Sign In') {
+        heading.textContent = 'Create Account';
+        toggleLink.textContent = 'Sign In';
+        
+        // Add name and email fields for registration
+        if (!document.getElementById('name')) {
+          const nameField = document.createElement('div');
+          nameField.className = 'form-group';
+          nameField.innerHTML = `
+            <label for="name">Full Name</label>
+            <input type="text" id="name" name="name" required>
+          `;
+          
+          const emailField = document.createElement('div');
+          emailField.className = 'form-group';
+          emailField.innerHTML = `
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required>
+          `;
+          
+          loginForm.insertBefore(nameField, loginForm.firstChild);
+          loginForm.insertBefore(emailField, loginForm.children[1]);
+        }
+      } else {
+        heading.textContent = 'Sign In';
+        toggleLink.textContent = 'Register';
+        
+        // Remove name and email fields for login
+        const nameField = document.getElementById('name').parentNode;
+        const emailField = document.getElementById('email').parentNode;
+        
+        if (nameField && emailField) {
+          loginForm.removeChild(nameField);
+          loginForm.removeChild(emailField);
+        }
+      }
+    });
+  </script>
+</body>
+</html>
