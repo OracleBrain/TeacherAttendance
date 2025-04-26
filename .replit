@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["nodejs-20", "flutter", "python-3.11"]
 
 [nix]
 channel = "stable-24_05"
@@ -17,7 +17,11 @@ args = "Server"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Client"
+args = "Flutter App"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Simple Preview"
 
 [[workflows.workflow]]
 name = "Server"
@@ -29,12 +33,21 @@ args = "cd server && npm install express cors passport passport-local express-se
 waitForPort = 8000
 
 [[workflows.workflow]]
-name = "Client"
+name = "Flutter App"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "cd client && node simple.js"
+args = "cd mobile_app && flutter run -d web --web-port 5000 --web-hostname 0.0.0.0"
+waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Simple Preview"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node simple-server.js"
 waitForPort = 5000
 
 [deployment]
@@ -43,6 +56,10 @@ run = ["sh", "-c", "cd server && npm install express cors passport passport-loca
 [[ports]]
 localPort = 5000
 externalPort = 5000
+
+[[ports]]
+localPort = 5001
+externalPort = 3001
 
 [[ports]]
 localPort = 8000

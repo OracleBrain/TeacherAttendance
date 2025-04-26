@@ -5,14 +5,11 @@ const path = require('path');
 const PORT = 5000;
 
 const server = http.createServer((req, res) => {
-  console.log(`Request received: ${req.method} ${req.url}`);
-  
-  // Always serve the HTML file regardless of the route
-  const filePath = path.join(__dirname, 'preview-app.html');
+  // Serve the index.html file for all requests
+  const filePath = path.join(__dirname, 'index.html');
   
   fs.readFile(filePath, (err, content) => {
     if (err) {
-      console.error(`Error reading file: ${err.message}`);
       res.writeHead(500);
       res.end(`Error loading the page: ${err.message}`);
       return;
@@ -24,5 +21,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}/`);
+  console.log(`Server running at http://0.0.0.0:${PORT}`);
 });
