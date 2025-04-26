@@ -5,8 +5,8 @@ const app = express();
 // Serve static files from the preview directory
 app.use(express.static(path.join(__dirname, 'preview')));
 
-// For any other request, serve the index.html from preview folder
-app.get('*', (req, res) => {
+// Serve index.html for the root route only
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'preview', 'index.html'));
 });
 

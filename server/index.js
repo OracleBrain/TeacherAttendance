@@ -5,7 +5,8 @@ const passport = require("passport");
 const { Strategy: LocalStrategy } = require("passport-local");
 const crypto = require("crypto");
 const util = require("util");
-const MemoryStore = require("memorystore")(session);
+const mongoose = require("mongoose");
+const connectMongo = require("connect-mongo");
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -17,40 +18,107 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// In-memory storage
+// MongoDB connection URI (if provided)
+const MONGODB_URI = process.env.MONGODB_URI;
+
+// MongoDB Models
+const userSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  username: { type: String, unique: true, required: true },
+  password: { type: String, required: true },
+  name: { type: String, required: true },
+  email: { type: String, required: true },
+  role: { type: String, enum: ['teacher'], default: 'teacher' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const classSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  name: { type: String, required: true },
+  section: { type: String, required: true },
+  subject: { type: String, required: true },
+  teacherId: { type: Number, required: true }
+});
+
+const studentSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  name: { type: String, required: true },
+  rollNumber: { type: String, required: true },
+  classId: { type: Number, required: true }
+});
+
+const attendanceSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  studentId: { type: Number, required: true },
+  classId: { type: Number, required: true },
+  date: { type: String, required: true },
+  status: { type: String, enum: ['present', 'absent', 'late'], required: true },
+  teacherId: { type: Number, required: true }
+});
+
+const notificationSchema = new mongoose.Schema({
+  id: { type: Number, unique: true, required: true },
+  userId: { type: Number, required: true },
+  title: { type: String, required: true },
+  message: { type: String, required: true },
+  read: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const counterSchema = new mongoose.Schema({
+  modelName: { type: String, required: true, unique: true },
+  count: { type: Number, default: 0 }
+});
+
+// Create MongoDB models
+const UserModel = mongoose.model('User', userSchema);
+const ClassModel = mongoose.model('Class', classSchema);
+const StudentModel = mongoose.model('Student', studentSchema);
+const AttendanceModel = mongoose.model('Attendance', attendanceSchema);
+const NotificationModel = mongoose.model('Notification', notificationSchema);
+const CounterModel = mongoose.model('Counter', counterSchema);
+
+// Function to get the next ID for a model
+async function getNextId(modelName) {
+  const counter = await CounterModel.findOneAndUpdate(
+    { modelName },
+    { $inc: { count: 1 } },
+    { new: true, upsert: true }
+  );
+  return counter.count;
+}
+
+// MongoDB session store
+const MongoStore = connectMongo;
+
+// Create a variable for session store that we can modify later
+let sessionStoreInstance;
+
+// If MongoDB URI is provided, use MongoDB session store
+if (MONGODB_URI) {
+  try {
+    sessionStoreInstance = MongoStore.create({
+      mongoUrl: MONGODB_URI,
+      collectionName: 'sessions',
+      ttl: 86400 // 1 day
+    });
+  } catch (err) {
+    console.error('Error creating MongoDB session store:', err);
+    // Will be set to MemoryStore in the useInMemoryMode function
+    sessionStoreInstance = null;
+  }
+} else {
+  // Will be set to MemoryStore in the useInMemoryMode function
+  sessionStoreInstance = null;
+}
+
+// MongoDB storage
 const storage = {
-  users: [],
-  classes: [
-    { id: 1, name: "Class 10", section: "A", subject: "Mathematics", teacherId: 1 },
-    { id: 2, name: "Class 9", section: "B", subject: "Science", teacherId: 1 },
-    { id: 3, name: "Class 8", section: "C", subject: "English", teacherId: 1 }
-  ],
-  students: [
-    { id: 1, name: "John Doe", rollNumber: "10A01", classId: 1 },
-    { id: 2, name: "Jane Smith", rollNumber: "10A02", classId: 1 },
-    { id: 3, name: "Bob Johnson", rollNumber: "10A03", classId: 1 },
-    { id: 4, name: "Alice Brown", rollNumber: "9B01", classId: 2 },
-    { id: 5, name: "Charlie Davis", rollNumber: "9B02", classId: 2 },
-    { id: 6, name: "Eva Wilson", rollNumber: "8C01", classId: 3 }
-  ],
-  attendance: [],
-  notifications: [
-    { 
-      id: 1, 
-      userId: 1, 
-      title: "Welcome to the Attendance App", 
-      message: "Thank you for joining our attendance management system.", 
-      read: false, 
-      createdAt: new Date() 
-    }
-  ],
-  sessionStore: new MemoryStore({
-    checkPeriod: 86400000
-  }),
+  sessionStore: sessionStoreInstance,
   
   // User methods
   getUser: async function(id) {
-    const user = this.users.find(u => u.id === id);
+    const user = await UserModel.findOne({ id }).lean();
     if (!user) return undefined;
     
     const { password, ...userWithoutPassword } = user;
@@ -58,17 +126,19 @@ const storage = {
   },
   
   getUserByUsername: async function(username) {
-    return this.users.find(u => u.username === username);
+    return await UserModel.findOne({ username }).lean();
   },
   
   createUser: async function(user) {
+    const id = await getNextId('User');
+    
     const newUser = {
       ...user,
-      id: this.users.length + 1,
+      id,
       createdAt: new Date()
     };
     
-    this.users.push(newUser);
+    await UserModel.create(newUser);
     
     const { password, ...userWithoutPassword } = newUser;
     return userWithoutPassword;
@@ -76,46 +146,86 @@ const storage = {
   
   // Class methods
   getClassesByTeacherId: async function(teacherId) {
-    return this.classes.filter(c => c.teacherId === teacherId);
+    return await ClassModel.find({ teacherId }).lean();
   },
   
   // Student methods
   getStudentsByClassId: async function(classId) {
-    return this.students.filter(s => s.classId === classId);
+    return await StudentModel.find({ classId }).lean();
   },
   
   // Attendance methods
   getAttendanceByClassId: async function(classId, date) {
-    let results = this.attendance.filter(a => a.classId === classId);
+    const query = { classId };
     if (date) {
-      results = results.filter(a => a.date === date);
+      query.date = date;
     }
-    return results;
+    return await AttendanceModel.find(query).lean();
   },
   
   markAttendance: async function(attendance) {
+    const id = await getNextId('Attendance');
+    
     const newAttendance = {
       ...attendance,
-      id: this.attendance.length + 1
+      id
     };
     
-    this.attendance.push(newAttendance);
+    await AttendanceModel.create(newAttendance);
     return newAttendance;
   },
   
   // Notification methods
   getNotificationsByUserId: async function(userId) {
-    return this.notifications.filter(n => n.userId === userId);
+    return await NotificationModel.find({ userId }).sort({ createdAt: -1 }).lean();
   },
   
   markNotificationAsRead: async function(id) {
-    const notification = this.notifications.find(n => n.id === id);
+    const notification = await NotificationModel.findOneAndUpdate(
+      { id },
+      { read: true },
+      { new: true }
+    ).lean();
+    
     if (!notification) {
       throw new Error("Notification not found");
     }
     
-    notification.read = true;
     return notification;
+  },
+  
+  // Function to initialize sample data
+  async initializeData() {
+    // Only add sample data if no classes exist
+    const classCount = await ClassModel.countDocuments();
+    if (classCount === 0) {
+      // Add sample classes
+      await ClassModel.create([
+        { id: await getNextId('Class'), name: "Class 10", section: "A", subject: "Mathematics", teacherId: 1 },
+        { id: await getNextId('Class'), name: "Class 9", section: "B", subject: "Science", teacherId: 1 },
+        { id: await getNextId('Class'), name: "Class 8", section: "C", subject: "English", teacherId: 1 }
+      ]);
+      
+      // Add sample students
+      await StudentModel.create([
+        { id: await getNextId('Student'), name: "John Doe", rollNumber: "10A01", classId: 1 },
+        { id: await getNextId('Student'), name: "Jane Smith", rollNumber: "10A02", classId: 1 },
+        { id: await getNextId('Student'), name: "Bob Johnson", rollNumber: "10A03", classId: 1 },
+        { id: await getNextId('Student'), name: "Alice Brown", rollNumber: "9B01", classId: 2 },
+        { id: await getNextId('Student'), name: "Charlie Davis", rollNumber: "9B02", classId: 2 },
+        { id: await getNextId('Student'), name: "Eva Wilson", rollNumber: "8C01", classId: 3 }
+      ]);
+      
+      // Add welcome notification template
+      await NotificationModel.create({
+        id: await getNextId('Notification'),
+        userId: 1,
+        title: "Welcome to the Attendance App",
+        message: "Thank you for joining our attendance management system.",
+        read: false,
+        createdAt: new Date()
+      });
+    }
   }
 };
 
@@ -263,7 +373,166 @@ app.put("/api/notifications/:id/read", async (req, res) => {
   res.json(notification);
 });
 
-// Start the server
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on http://0.0.0.0:${PORT}`);
-});
+// In-memory data storage (used when MongoDB is not available)
+const inMemoryStorage = {
+  users: [],
+  classes: [
+    { id: 1, name: "Class 10", section: "A", subject: "Mathematics", teacherId: 1 },
+    { id: 2, name: "Class 9", section: "B", subject: "Science", teacherId: 1 },
+    { id: 3, name: "Class 8", section: "C", subject: "English", teacherId: 1 }
+  ],
+  students: [
+    { id: 1, name: "John Doe", rollNumber: "10A01", classId: 1 },
+    { id: 2, name: "Jane Smith", rollNumber: "10A02", classId: 1 },
+    { id: 3, name: "Bob Johnson", rollNumber: "10A03", classId: 1 },
+    { id: 4, name: "Alice Brown", rollNumber: "9B01", classId: 2 },
+    { id: 5, name: "Charlie Davis", rollNumber: "9B02", classId: 2 },
+    { id: 6, name: "Eva Wilson", rollNumber: "8C01", classId: 3 }
+  ],
+  attendance: [],
+  notifications: [
+    { 
+      id: 1, 
+      userId: 1, 
+      title: "Welcome to the Attendance App", 
+      message: "Thank you for joining our attendance management system.", 
+      read: false, 
+      createdAt: new Date() 
+    }
+  ],
+  counters: {}
+};
+
+// Fallback in-memory methods (when MongoDB is not available)
+const fallbackStorage = {
+  getNextId: function(modelName) {
+    if (!inMemoryStorage.counters[modelName]) {
+      inMemoryStorage.counters[modelName] = 1;
+    }
+    return inMemoryStorage.counters[modelName]++;
+  },
+  
+  getUser: function(id) {
+    const user = inMemoryStorage.users.find(u => u.id === id);
+    if (!user) return undefined;
+    
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
+  },
+  
+  getUserByUsername: function(username) {
+    return inMemoryStorage.users.find(u => u.username === username);
+  },
+  
+  createUser: function(user) {
+    const id = fallbackStorage.getNextId('user');
+    
+    const newUser = {
+      ...user,
+      id,
+      createdAt: new Date()
+    };
+    
+    inMemoryStorage.users.push(newUser);
+    
+    const { password, ...userWithoutPassword } = newUser;
+    return userWithoutPassword;
+  },
+  
+  getClassesByTeacherId: function(teacherId) {
+    return inMemoryStorage.classes.filter(c => c.teacherId === teacherId);
+  },
+  
+  getStudentsByClassId: function(classId) {
+    return inMemoryStorage.students.filter(s => s.classId === classId);
+  },
+  
+  getAttendanceByClassId: function(classId, date) {
+    let results = inMemoryStorage.attendance.filter(a => a.classId === classId);
+    if (date) {
+      results = results.filter(a => a.date === date);
+    }
+    return results;
+  },
+  
+  markAttendance: function(attendance) {
+    const id = fallbackStorage.getNextId('attendance');
+    
+    const newAttendance = {
+      ...attendance,
+      id
+    };
+    
+    inMemoryStorage.attendance.push(newAttendance);
+    return newAttendance;
+  },
+  
+  getNotificationsByUserId: function(userId) {
+    return inMemoryStorage.notifications.filter(n => n.userId === userId);
+  },
+  
+  markNotificationAsRead: function(id) {
+    const notification = inMemoryStorage.notifications.find(n => n.id === id);
+    if (!notification) {
+      throw new Error("Notification not found");
+    }
+    
+    notification.read = true;
+    return notification;
+  }
+};
+
+// Try to connect to MongoDB or use in-memory mode
+if (MONGODB_URI) {
+  mongoose.connect(MONGODB_URI)
+    .then(async () => {
+      console.log('Connected to MongoDB successfully');
+      
+      // Initialize sample data
+      await storage.initializeData();
+      
+      // Start the server
+      app.listen(PORT, "0.0.0.0", () => {
+        console.log(`Server running with MongoDB on http://0.0.0.0:${PORT}`);
+      });
+    })
+    .catch(err => {
+      console.error('Failed to connect to MongoDB, falling back to in-memory storage:', err);
+      useInMemoryMode();
+    });
+} else {
+  console.log('No MongoDB URI provided, using in-memory storage mode');
+  useInMemoryMode();
+}
+
+// Function to set up in-memory mode
+function useInMemoryMode() {
+  // Use in-memory session store
+  const MemoryStore = require("memorystore")(session);
+  const memorySessionStore = new MemoryStore({
+    checkPeriod: 86400000
+  });
+  
+  // Override storage methods with in-memory implementations
+  storage.getUser = fallbackStorage.getUser;
+  storage.getUserByUsername = fallbackStorage.getUserByUsername;
+  storage.createUser = fallbackStorage.createUser;
+  storage.getClassesByTeacherId = fallbackStorage.getClassesByTeacherId;
+  storage.getStudentsByClassId = fallbackStorage.getStudentsByClassId;
+  storage.getAttendanceByClassId = fallbackStorage.getAttendanceByClassId;
+  storage.markAttendance = fallbackStorage.markAttendance;
+  storage.getNotificationsByUserId = fallbackStorage.getNotificationsByUserId;
+  storage.markNotificationAsRead = fallbackStorage.markNotificationAsRead;
+  storage.sessionStore = memorySessionStore;
+  
+  // Update session middleware to use memory store
+  app.use(session({
+    ...sessionSettings,
+    store: memorySessionStore
+  }));
+  
+  // Start the server with in-memory storage
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running with in-memory storage on http://0.0.0.0:${PORT}`);
+  });
+}

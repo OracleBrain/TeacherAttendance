@@ -21,7 +21,7 @@ args = "Flutter App"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Simple Preview"
+args = "Static Preview"
 
 [[workflows.workflow]]
 name = "Server"
@@ -42,12 +42,12 @@ args = "cd mobile_app && flutter run -d web --web-port 5000 --web-hostname 0.0.0
 waitForPort = 5000
 
 [[workflows.workflow]]
-name = "Simple Preview"
+name = "Static Preview"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "node simple-server.js"
+args = "node static-preview.js"
 waitForPort = 5000
 
 [deployment]

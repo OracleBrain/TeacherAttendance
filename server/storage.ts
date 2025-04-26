@@ -1,8 +1,7 @@
-import session from "express-session";
-import createMemoryStore from "memorystore";
 import { User, InsertUser, SelectUser, Class, Student, Attendance, Notification } from "../shared/schema";
-
-const MemoryStore = createMemoryStore(session);
+import { UserModel, ClassModel, StudentModel, AttendanceModel, NotificationModel, getNextId } from "./models";
+import connectMongo from "connect-mongo";
+import session from "express-session";
 
 export interface IStorage {
   getUser(id: number): Promise<SelectUser | undefined>;
@@ -18,87 +17,99 @@ export interface IStorage {
   getNotificationsByUserId(userId: number): Promise<Notification[]>;
   markNotificationAsRead(id: number): Promise<Notification>;
 
-  sessionStore: session.SessionStore;
+  sessionStore: any;
 }
 
-export class MemStorage implements IStorage {
-  private users: User[] = [];
-  private classes: Class[] = [];
-  private students: Student[] = [];
-  private attendance: Attendance[] = [];
-  private notifications: Notification[] = [];
-  sessionStore: session.SessionStore;
+export class MongoStorage implements IStorage {
+  sessionStore: any;
 
   constructor() {
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000,
+    this.sessionStore = connectMongo.create({
+      mongoUrl: process.env.MONGODB_URI || 'mongodb://localhost:27017/attendance_app',
+      collectionName: 'sessions',
+      ttl: 86400 // 1 day
     });
   }
 
   async getUser(id: number): Promise<SelectUser | undefined> {
-    const user = this.users.find(u => u.id === id);
+    const user = await UserModel.findOne({ id }).lean();
     if (!user) return undefined;
     
-    const { password, ...userWithoutPassword } = user;
+    const { password, ...userWithoutPassword } = user as User;
     return userWithoutPassword as SelectUser;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return this.users.find(u => u.username === username);
+    const user = await UserModel.findOne({ username }).lean();
+    return user as User | undefined;
   }
 
   async createUser(user: InsertUser): Promise<SelectUser> {
+    const id = await getNextId('User');
+    
     const newUser: User = {
       ...user,
-      id: this.users.length + 1,
+      id,
       createdAt: new Date()
     };
     
-    this.users.push(newUser);
+    await UserModel.create(newUser);
     
     const { password, ...userWithoutPassword } = newUser;
     return userWithoutPassword as SelectUser;
   }
 
   async getClassesByTeacherId(teacherId: number): Promise<Class[]> {
-    return this.classes.filter(c => c.teacherId === teacherId);
+    const classes = await ClassModel.find({ teacherId }).lean();
+    return classes as Class[];
   }
 
   async getStudentsByClassId(classId: number): Promise<Student[]> {
-    return this.students.filter(s => s.classId === classId);
+    const students = await StudentModel.find({ classId }).lean();
+    return students as Student[];
   }
 
   async getAttendanceByClassId(classId: number, date?: string): Promise<Attendance[]> {
-    let results = this.attendance.filter(a => a.classId === classId);
+    const query: any = { classId };
     if (date) {
-      results = results.filter(a => a.date === date);
+      query.date = date;
     }
-    return results;
+    
+    const attendanceRecords = await AttendanceModel.find(query).lean();
+    return attendanceRecords as Attendance[];
   }
 
   async markAttendance(attendance: Omit<Attendance, 'id'>): Promise<Attendance> {
+    const id = await getNextId('Attendance');
+    
     const newAttendance: Attendance = {
       ...attendance,
-      id: this.attendance.length + 1
+      id
     };
     
-    this.attendance.push(newAttendance);
+    await AttendanceModel.create(newAttendance);
     return newAttendance;
   }
 
   async getNotificationsByUserId(userId: number): Promise<Notification[]> {
-    return this.notifications.filter(n => n.userId === userId);
+    const notifications = await NotificationModel.find({ userId }).sort({ createdAt: -1 }).lean();
+    return notifications as Notification[];
   }
 
   async markNotificationAsRead(id: number): Promise<Notification> {
-    const notification = this.notifications.find(n => n.id === id);
+    const notification = await NotificationModel.findOneAndUpdate(
+      { id },
+      { read: true },
+      { new: true }
+    ).lean();
+    
     if (!notification) {
       throw new Error("Notification not found");
     }
     
-    notification.read = true;
-    return notification;
+    return notification as Notification;
   }
 }
 
-export const storage = new MemStorage();
+// Export the MongoDB storage implementation
+export const storage = new MongoStorage();
