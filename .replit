@@ -1,0 +1,53 @@
+modules = ["nodejs-20"]
+
+[nix]
+channel = "stable-24_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client"
+
+[[workflows.workflow]]
+name = "Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm install express cors passport passport-local express-session memorystore && node index.js"
+waitForPort = 8000
+
+[[workflows.workflow]]
+name = "Client"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm install react react-dom wouter @tanstack/react-query @types/react @types/react-dom lucide-react && npx vite --port 5000 --host 0.0.0.0"
+waitForPort = 5000
+
+[deployment]
+run = ["sh", "-c", "cd server && npm install express cors passport passport-local express-session memorystore && node index.js"]
+
+[[ports]]
+localPort = 5000
+externalPort = 5000
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[[ports]]
+localPort = 24678
+externalPort = 3000
